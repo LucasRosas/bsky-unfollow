@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog'
 
 import { AutoForm } from '@/components/ui/auto-form'
@@ -113,6 +114,20 @@ const initRemotion = async () => {
     await wait(250)
     count.value++
   } while (cursor.value != null)
+}
+
+const copiado = ref(false)
+const copyCode = () => {
+  navigator.clipboard
+    .writeText(
+      '00020101021126580014br.gov.bcb.pix013680aeb87a-9e21-4e66-a479-4344d8330b595204000053039865802BR5918LUCAS ARAUJO ROSAS6011SANTA LUZIA62070503***6304A630',
+    )
+    .then(() => {
+      copiado.value = true
+      setTimeout(() => {
+        copiado.value = false
+      }, 3000)
+    })
 }
 </script>
 
@@ -237,6 +252,31 @@ const initRemotion = async () => {
     <div class="p-4 text-center text-xs text-gray-500">
       Feito com ❤️ por
       <a href="https://bsky.app/profile/lucasaros.bsky.social"> @lucasaros.bsky.social </a>
+
+      <div class="p-4 text-center text-xs text-gray-500">
+        <Dialog>
+          <DialogTrigger as-child>
+            <Button size="sm">☕ Apoie-me com um pix</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader class="space-y-6">
+              <DialogTitle> ☕ Apoie-me com um pix </DialogTitle>
+              <DialogDescription class="space-y-6">
+                <div>
+                  Se você quiser me ajudar a manter esse script funcionando e atualizado, você pode
+                  fazer um pix pra mim com o valor que quiser. Obrigado!
+                </div>
+                <div class="flex justify-center items-center">
+                  <Button size="sm" variant="secondary" @click="copyCode">{{
+                    copiado ? 'Copiado!' : 'Copiar código'
+                  }}</Button>
+                </div>
+                <img src="/image.png" alt="" srcset="" />
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   </main>
 </template>
