@@ -55,7 +55,6 @@ const onSubmit = async (values) => {
   const { data } = await agent.getProfile({
     actor: login.value.arroba,
   })
-  console.log(data)
   profile.value = data
   followsCount.value = data.followsCount
 
@@ -68,10 +67,9 @@ const onSubmit = async (values) => {
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const cursor = ref(null)
 
-const unfollow = async (did, handle) => {
+const unfollow = async (did) => {
   const { uri } = await agent.follow(did)
   await agent.deleteFollow(uri)
-  console.log('Deixei de seguir ', handle)
   let follower = followers.value.find((f) => f.did == did)
   follower.inactive = true
   followsCount.value -= 1
@@ -87,14 +85,11 @@ const initRemotion = async () => {
       cursor: cursor.value,
     })
 
-    console.log('Seguidores obtidos com sucesso')
-
     const { follows } = data
     followers.value.push(...follows)
     cursor.value = data.cursor
     for await (const follow of follows) {
       let { did, handle } = follow
-      console.log(`\n Buscando feed de ${handle}`)
       const { data } = await agent.getAuthorFeed({
         actor: handle,
         limit: 1,
@@ -103,17 +98,13 @@ const initRemotion = async () => {
       const { feed } = data
 
       if (feed.length == 0) {
-        console.log('feed is empty')
-        await unfollow(did, handle)
+        await unfollow(did)
       } else if (
         new Date(feed[0].post.indexedAt).valueOf() <
         new Date().valueOf() - 1000 * 60 * 60 * 24 * 30
       ) {
-        await unfollow(did, handle)
-
-        console.log('feed older than 30 days')
+        await unfollow(did)
       } else {
-        console.log('feed is up to date')
         let follower = followers.value.find((f) => f.did == did)
         follower.inactive = false
       }

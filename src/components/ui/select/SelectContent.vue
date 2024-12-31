@@ -1,17 +1,12 @@
 <script setup>
-import { cn } from '@/lib/utils';
-import {
-  SelectContent,
-  SelectPortal,
-  SelectViewport,
-  useForwardPropsEmits,
-} from 'radix-vue';
-import { computed } from 'vue';
-import { SelectScrollDownButton, SelectScrollUpButton } from '.';
+import { cn } from '@/lib/utils'
+import { SelectContent, SelectPortal, SelectViewport, useForwardPropsEmits } from 'radix-vue'
+import { computed } from 'vue'
+import { SelectScrollDownButton, SelectScrollUpButton } from '.'
 
 defineOptions({
   inheritAttrs: false,
-});
+})
 
 const props = defineProps({
   forceMount: { type: Boolean, required: false },
@@ -32,20 +27,16 @@ const props = defineProps({
   asChild: { type: Boolean, required: false },
   as: { type: null, required: false },
   class: { type: null, required: false },
-});
-const emits = defineEmits([
-  'closeAutoFocus',
-  'escapeKeyDown',
-  'pointerDownOutside',
-]);
+})
+const emits = defineEmits(['closeAutoFocus', 'escapeKeyDown', 'pointerDownOutside'])
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
+  const { class: _, ...delegated } = props
 
-  return delegated;
-});
+  return delegated
+})
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits);
+const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>

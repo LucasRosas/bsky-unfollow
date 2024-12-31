@@ -1,17 +1,17 @@
 <script setup>
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'
 import {
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { TrashIcon } from 'lucide-vue-next';
-import { ref } from 'vue';
-import AutoFormLabel from './AutoFormLabel.vue';
-import { beautifyObjectName } from './utils';
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { TrashIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
+import AutoFormLabel from './AutoFormLabel.vue'
+import { beautifyObjectName } from './utils'
 
 defineProps({
   fieldName: { type: String, required: true },
@@ -19,22 +19,22 @@ defineProps({
   required: { type: Boolean, required: false },
   config: { type: Object, required: false },
   disabled: { type: Boolean, required: false },
-});
+})
 
-const inputFile = ref();
+const inputFile = ref()
 async function parseFileAsString(file) {
   return new Promise((resolve, reject) => {
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onloadend = () => {
-        resolve(reader.result);
-      };
+        resolve(reader.result)
+      }
       reader.onerror = (err) => {
-        reject(err);
-      };
-      reader.readAsDataURL(file);
+        reject(err)
+      }
+      reader.readAsDataURL(file)
     }
-  });
+  })
 }
 </script>
 
@@ -53,10 +53,10 @@ async function parseFileAsString(file) {
             :disabled="disabled"
             @change="
               async (ev) => {
-                const file = ev.target.files?.[0];
-                inputFile = file;
-                const parsed = await parseFileAsString(file);
-                slotProps.componentField.onInput(parsed);
+                const file = ev.target.files?.[0]
+                inputFile = file
+                const parsed = await parseFileAsString(file)
+                slotProps.componentField.onInput(parsed)
               }
             "
           />
@@ -73,8 +73,8 @@ async function parseFileAsString(file) {
               type="button"
               @click="
                 () => {
-                  inputFile = undefined;
-                  slotProps.componentField.onInput(undefined);
+                  inputFile = undefined
+                  slotProps.componentField.onInput(undefined)
                 }
               "
             >
