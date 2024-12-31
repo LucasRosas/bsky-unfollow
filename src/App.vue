@@ -16,27 +16,27 @@ import {
 } from '@/components/ui/dialog'
 
 import { AutoForm } from '@/components/ui/auto-form'
-import { BskyAgent } from '@atproto/api'
+import { AtpAgent } from '@atproto/api'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
-const agent = new BskyAgent({
+const agent = new AtpAgent({
   service: 'https://bsky.social',
 })
 
 const openLogin = ref(true)
 const login = ref({
-  email: '',
+  user: '',
   password: '',
-  arroba: '',
 })
+
+const loginError = ref(null)
 
 const followsCount = ref(0)
 
 const profile = ref({})
 
 const formSchema = z.object({
-  email: z.string().email().describe('E-mail'),
+  user: z.string().describe('E-mail ou @'),
   password: z.string().min(1).describe('Senha'),
-  arroba: z.string().min(1).describe('Arroba'),
 })
 
 import { useColorMode } from '@vueuse/core'
@@ -46,15 +46,22 @@ mode.value = 'dark'
 
 const interactions = ref(0)
 const count = ref(0)
-
+const auth = ref(null)
 const onSubmit = async (values) => {
   login.value = values
-  await agent.login({
-    identifier: login.value.email,
-    password: login.value.password,
-  })
-  const { data } = await agent.getProfile({
-    actor: login.value.arroba,
+  try {
+    await agent.login({
+      identifier: login.value.user,
+      password: login.value.password,
+    })
+    let { data } = await agent.com.atproto.server.getSession()
+    auth.value = data
+  } catch (e) {
+    console.log(e)
+    loginError.value = 'Usuário ou senha inválidos'
+  }
+  let { data } = await agent.getProfile({
+    actor: auth.value.did,
   })
   profile.value = data
   followsCount.value = data.followsCount
@@ -68,9 +75,13 @@ const onSubmit = async (values) => {
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 const cursor = ref(null)
 
-const unfollow = async (did) => {
-  const { uri } = await agent.follow(did)
-  await agent.deleteFollow(uri)
+const unfollow = async (did, viewer) => {
+  let rkey = viewer.following.split('/').pop()
+  await agent.com.atproto.repo.deleteRecord({
+    repo: auth.value.did,
+    collection: 'app.bsky.graph.follow',
+    rkey: rkey,
+  })
   let follower = followers.value.find((f) => f.did == did)
   follower.inactive = true
   followsCount.value -= 1
@@ -90,7 +101,7 @@ const initRemotion = async () => {
     followers.value.push(...follows)
     cursor.value = data.cursor
     for await (const follow of follows) {
-      let { did, handle } = follow
+      let { did, handle, viewer } = follow
       const { data } = await agent.getAuthorFeed({
         actor: handle,
         limit: 2,
@@ -99,12 +110,12 @@ const initRemotion = async () => {
       const { feed } = data
 
       if (feed.length == 0) {
-        await unfollow(did)
+        await unfollow(did, viewer)
       } else if (
         new Date(feed[0].post.indexedAt).valueOf() <
         new Date().valueOf() - 1000 * 60 * 60 * 24 * 30
       ) {
-        await unfollow(did)
+        await unfollow(did, viewer)
       } else {
         let follower = followers.value.find((f) => f.did == did)
         follower.inactive = false
@@ -151,10 +162,10 @@ const copyCode = () => {
             class="space-y-6"
             :schema="formSchema"
             :field-config="{
-              email: {
+              user: {
                 inputProps: {
                   type: 'email',
-                  placeholder: 'meu@email.com',
+                  placeholder: 'meu@email.com ou meuarroba.bsky.social',
                 },
               },
               password: {
@@ -164,15 +175,12 @@ const copyCode = () => {
                   placeholder: '••••••••',
                 },
               },
-              arroba: {
-                inputProps: {
-                  type: 'string',
-                  placeholder: 'meuarroba.bsky.social',
-                },
-              },
             }"
             @submit="onSubmit"
           >
+            <div class="text-red-500" v-if="loginError">
+              {{ loginError }}
+            </div>
             <div class="flex align-end flex-col space-y-4 gap-4">
               Ao clicar em entrar o script irá buscar seus seguidores e verificar se estão ativos.
               Os inativos serão removidos. Você concorda com isso?
