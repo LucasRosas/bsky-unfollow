@@ -157,7 +157,7 @@ const initRemotion = async () => {
               arroba: {
                 inputProps: {
                   type: 'string',
-                  placeholder: '@meuarroba.sbky.social',
+                  placeholder: '@meuarroba.bsky.social',
                 },
               },
             }"
@@ -205,7 +205,7 @@ const initRemotion = async () => {
         </CardDescription>
       </Card>
 
-      <ScrollArea class="h-[50vh] rounded-md border p-4 space-y-3">
+      <ScrollArea class="h-[50vh] rounded-md border px-4 space-y-3">
         <template v-for="follower in followers" :key="follower.did">
           <div
             class="flex justify-between items-center p-2"
@@ -238,6 +238,10 @@ const initRemotion = async () => {
           </div>
         </div>
       </ScrollArea>
+    </div>
+    <div class="p-4 text-center text-xs text-gray-500">
+      Feito com ❤️ por
+      <a href="https://bsky.app/profile/lucasaros.bsky.social"> @lucasaros.bsky.social </a>
     </div>
   </main>
 </template>
