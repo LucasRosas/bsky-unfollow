@@ -92,7 +92,7 @@ const initRemotion = async () => {
       let { did, handle } = follow
       const { data } = await agent.getAuthorFeed({
         actor: handle,
-        limit: 1,
+        limit: 2,
       })
 
       const { feed } = data
@@ -127,6 +127,10 @@ const initRemotion = async () => {
             você esteja logado. Não se preocupe, seus dados estão seguros! Não salvamos nada em
             nossos servidores. Em breve vamos melhorar a forma de te conectar com o bsky ❤️.
           </div>
+          <div>
+            Os usuários inativos são aqueles que nunca postaram nada ou não postam a mais de 30
+            dias.
+          </div>
 
           <AutoForm
             class="space-y-6"
@@ -148,7 +152,7 @@ const initRemotion = async () => {
               arroba: {
                 inputProps: {
                   type: 'string',
-                  placeholder: '@meuarroba.bsky.social',
+                  placeholder: 'meuarroba.bsky.social',
                 },
               },
             }"
