@@ -33,10 +33,14 @@ const loginError = ref(null)
 const followsCount = ref(0)
 
 const profile = ref({})
+const tfaactive = ref(false)
 
 const formSchema = z.object({
   user: z.string().describe('E-mail ou @'),
   password: z.string().min(1).describe('Senha'),
+})
+const TFASchema = z.object({
+  TFA: z.string().describe('Código de login do Bluesky'),
 })
 
 import { useColorMode } from '@vueuse/core'
@@ -48,18 +52,24 @@ const interactions = ref(0)
 const count = ref(0)
 const auth = ref(null)
 const onSubmit = async (values) => {
-  login.value = values
+  if (!tfaactive.value) login.value = values
   try {
     await agent.login({
       identifier: login.value.user,
       password: login.value.password,
+      ...(tfaactive.value ? { authFactorToken: values.TFA } : {}),
     })
     let { data } = await agent.com.atproto.server.getSession()
     auth.value = data
   } catch (e) {
-    console.log(e)
+    if (e.message == 'A sign in code has been sent to your email address') {
+      tfaactive.value = true
+      loginError.value = null
+      return
+    }
     loginError.value = 'Usuário ou senha inválidos'
   }
+  tfaactive.value = false
   let { data } = await agent.getProfile({
     actor: auth.value.did,
   })
@@ -113,7 +123,7 @@ const initRemotion = async () => {
         await unfollow(did, viewer)
       } else if (
         new Date(feed[0].post.indexedAt).valueOf() <
-        new Date().valueOf() - 1000 * 60 * 60 * 24 * 30
+        new Date().valueOf() - 1000 * 60 * 60 * 24 * 45
       ) {
         await unfollow(did, viewer)
       } else {
@@ -154,11 +164,12 @@ const copyCode = () => {
             nossos servidores. Em breve vamos melhorar a forma de te conectar com o bsky ❤️.
           </div>
           <div>
-            Os usuários inativos são aqueles que nunca postaram nada ou não postam a mais de 30
+            Os usuários inativos são aqueles que nunca postaram nada ou não postam a mais de 45
             dias.
           </div>
 
           <AutoForm
+            v-if="!tfaactive"
             class="space-y-6"
             :schema="formSchema"
             :field-config="{
@@ -172,6 +183,31 @@ const copyCode = () => {
                 label: 'Senha',
                 inputProps: {
                   type: 'password',
+                  placeholder: '••••••••',
+                },
+              },
+            }"
+            @submit="onSubmit"
+          >
+            <div class="text-red-500" v-if="loginError">
+              {{ loginError }}
+            </div>
+            <div class="flex align-end flex-col space-y-4 gap-4">
+              Ao clicar em entrar o script irá buscar seus seguidores e verificar se estão ativos.
+              Os inativos serão removidos. Você concorda com isso?
+              <Button type="submit"> Entrar </Button>
+            </div>
+          </AutoForm>
+          <AutoForm
+            v-if="tfaactive"
+            class="space-y-6"
+            :schema="TFASchema"
+            :field-config="{
+              TFA: {
+                label: 'Código de autenticação',
+                hidden: !tfaactive,
+                inputProps: {
+                  type: 'text',
                   placeholder: '••••••••',
                 },
               },
